@@ -1,3 +1,5 @@
 # Ignore .idea folder for project settings #
 ############################################
 .idea/
+
+*.pyc
