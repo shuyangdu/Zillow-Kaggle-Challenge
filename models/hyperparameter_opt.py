@@ -3,13 +3,30 @@ from __future__ import print_function
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error
-from hyperopt import fmin, tpe, Trials, STATUS_OK
+from hyperopt import fmin, tpe, Trials, STATUS_OK, space_eval
 
 
 class HyperParameterOpt(object):
     """
     Class to do hyper-parameter optimization.
     """
+
+    @staticmethod
+    def transform_trials_vals(misc_vals):
+        """
+        Transform trials['misc']['vals'] dictionary to the same format as best, to be used in space_eval.
+        >>> trials = HyperParameterOpt().trials
+        >>> trials['misc']['vals'] = {'n_estimators': [20]}
+        >>> HyperParameterOpt.transform_trials_vals(trials['misc']['vals'])
+        >>> {'n_estimators': 20}
+        :param misc_vals: original dictionary
+        :return: transformed dictionary
+        """
+        d = misc_vals.copy()
+        for key, val in d.items():
+            d[key] = val[0]
+        return d
+
     def __init__(self, model_class=None, data_process_pipeline=None, df=None, fixed_params=None,
                  search_space=None, max_evals=1):
         """
@@ -78,9 +95,12 @@ class HyperParameterOpt(object):
         """
         df = pd.DataFrame()
         for trial in self.trials.trials:
-            df_params = pd.DataFrame(trial['misc']['vals'])
+            params_dict = space_eval(self.search_space, self.transform_trials_vals(trial['misc']['vals']))
+            df_params = pd.DataFrame(params_dict, index=[0])
             df_results = pd.DataFrame(trial['result'], index=[0])
-            df = pd.concat([df, pd.concat([df_params, df_results], axis=1)], axis=0)
+            df = pd.concat([df, pd.concat([df_params, df_results], axis=1)], axis=0, ignore_index=True)
 
+        df = df.sort_values('loss')
+        df.index = range(len(df))
         # note, for parameters defined using hp.choice, the value here is the index in hp.choice
-        return df.sort_values('loss')
+        return df

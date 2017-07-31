@@ -11,11 +11,10 @@ class DNN(object):
     Dense Neural Networks.
     """
 
-    def __init__(self, dim_inputs=None, dim_hidden_lst=(), learning_rate=0.01, decay=0.0, reg=0.01,
+    def __init__(self, dim_hidden_lst=(), learning_rate=0.01, decay=0.0, reg=0.01,
                  batch_size=128, epochs=5, verbose=0):
         """
         Constructor
-        :param dim_inputs: input feature dimension
         :param dim_hidden_lst: number of neurons in each hidden layer
         :param learning_rate: learning rate for gradient descent
         :param decay: decay rate for learning rate
@@ -24,7 +23,7 @@ class DNN(object):
         :param epochs: epochs of training
         :param verbose: verbose level
         """
-        self.dim_inputs = dim_inputs
+        self.dim_inputs = None  # inferred in fit method
         self.dim_hidden_lst = list(dim_hidden_lst)
         self.learning_rate = learning_rate
         self.decay = decay
@@ -34,10 +33,6 @@ class DNN(object):
         self.verbose = verbose
         self.model = None
         self.train_history = None
-
-        # construct model
-        self._init_structure()
-        self._init_learning()
 
     def _init_structure(self):
         """
@@ -72,6 +67,12 @@ class DNN(object):
         :param validation_data: could be a tuple (x_val, y_val) or a tuple (x_val, y_val, val_sample_weights)
         :return: None
         """
+        self.dim_inputs = X.shape[1]
+
+        # construct model
+        self._init_structure()
+        self._init_learning()
+
         self.train_history = self.model.fit(x=X, y=y, batch_size=self.batch_size, epochs=self.epochs,
                                             verbose=self.verbose, validation_data=validation_data, shuffle=True)
 

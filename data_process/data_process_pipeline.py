@@ -16,19 +16,22 @@ class DataProcessPipeline(object):
                  transaction_rename_dict=TRANSACTION_RENAME_DICT,
                  numerical_cols=NUMERICAL_COLS,
                  categorical_cols=CATEGORICAL_COLS,
-                 ):
+                 encode_mode='label'):
         """
         Constructor
         :param properties_rename_dict: dictionary to rename properties data frame
         :param transaction_rename_dict: dictionary to rename transaction data frame
         :param numerical_cols: numerical feature columns
         :param categorical_cols: categorical feature columns
+        :param encode_mode: label, dummy or numeric encoding
         """
         self.properties_rename_dict = properties_rename_dict
         self.transaction_rename_dict = transaction_rename_dict
         self.numerical_cols = numerical_cols
         self.categorical_cols = categorical_cols
         self.label_col = label_col
+
+        self.encode_mode = encode_mode
 
         self.processor_numerical = DataProcessorNumerical()
         self.processor_categorical = DataProcessorCategorical()
@@ -66,7 +69,7 @@ class DataProcessPipeline(object):
 
     def pre_process(self, df):
         """
-        Fill NaN, label encode
+        Fill NaN, take log
         :param df: 
         :return: 
         """
@@ -78,7 +81,6 @@ class DataProcessPipeline(object):
         df_numerical = self.processor_numerical.log(df_numerical)
 
         df_categorical = self.processor_categorical.fill_nan(df_categorical)
-        df_categorical = self.processor_categorical.label_encode(df_categorical)
 
         return pd.concat([df_numerical, df_categorical, df[self.label_col]], axis=1)
 
@@ -89,6 +91,18 @@ class DataProcessPipeline(object):
         df = df.copy()
         self.processor_numerical.is_train = is_train
         self.processor_categorical.is_train = is_train
+
+        df_categorical = df[self.categorical_cols].copy()
+
+        if self.encode_mode == 'label':
+            df_categorical = self.processor_categorical.label_encode(df_categorical)
+        elif self.encode_mode == 'numeric':
+            df_categorical = self.processor_categorical.\
+                numeric_encode(df[self.categorical_cols+[self.label_col]].copy(), self.label_col)
+        else:
+            # ToDo: dummy encoding
+            pass
+        df.loc[:, self.categorical_cols] = df_categorical
 
         # scale numerical values
         df.loc[:, self.numerical_cols] = self.processor_numerical.scale(df[self.numerical_cols])
