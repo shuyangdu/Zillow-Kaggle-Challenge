@@ -5,6 +5,9 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import KFold
 
 
+DUMMY_ENCODE_MAX_NUM_VALS = 20
+
+
 class DataProcessorBase(object):
     """
     Base data processor.
@@ -58,11 +61,23 @@ class DataProcessorCategorical(DataProcessorBase):
     """
     Process categorical features.
     """
-    def __init__(self, is_train=True):
+    def __init__(self, is_train=True, encode_mode=None):
         super(DataProcessorCategorical, self).__init__(is_train=is_train)
+        # label, dummy, numeric
+        self.encode_mode = encode_mode
+
         # dictionary to store label encoder for each column
         self.label_encoder_dict = {}
         self.numeric_encoder_dict = {}
+
+        # mark for NaN
+        self.NaN = 'NaN'
+
+        # dictionary to hold categorical columns and unique values in that column
+        self.categorical_value_dict = {}
+
+        # encoded columns for dummy encoding
+        self.encoded_cols = []
 
     def fill_nan(self, df):
         """
@@ -71,25 +86,98 @@ class DataProcessorCategorical(DataProcessorBase):
         :return: filled NaN
         """
         # change data type to object
-        df = df.astype(object)
+        if self.encode_mode == 'label':
+            df = df.where(pd.notnull(df), other=self.NaN)
+            # for label encoding, must convert data type to string, otherwise after list() it will become float again,
+            # and if we add 'NaN' during fitting but no 'NaN' in transform, it will have type error
+            df = df.astype(str)
+        else:
+            df = df.astype(object)
+        return df
 
-        df[pd.isnull(df)] = 'NaN'
+    def _collect_train_values(self, df):
+        """
+        Collect unique categorical value for each column, add NaN if there is none.
+        :param df: 
+        :return: 
+        """
+        # only do this for label encoding
+        for col in df.columns:
+            self.categorical_value_dict[col] = df[col].unique()
+            if self.encode_mode == 'label' and np.NaN not in self.categorical_value_dict[col]:
+                self.categorical_value_dict[col] = np.append(self.categorical_value_dict[col], self.NaN)
+            elif self.encode_mode == 'dummy' and pd.notnull(self.categorical_value_dict[col]).all():
+                self.categorical_value_dict[col] = np.append(self.categorical_value_dict[col], np.nan)
+
+    def _fill_test_values(self, df):
+        """
+        Fill unseen values in test set to be NaN.
+        :param df: 
+        :return: 
+        """
+        for col in df.columns:
+            if self.encode_mode == 'dummy':
+                df.loc[~df[col].isin(self.categorical_value_dict[col]), col] = np.nan
+            elif self.encode_mode == 'label':
+                df.loc[~df[col].isin(self.categorical_value_dict[col]), col] = self.NaN
         return df
 
     def label_encode(self, df):
         """
         Label encoding.
         """
+        # fit encoder during training
+        if self.is_train:
+            self._collect_train_values(df)
+            for col in df.columns:
+                le = LabelEncoder()
+                le.fit(list(self.categorical_value_dict[col]))
+                self.label_encoder_dict[col] = le
+            # store encoded columns
+            self.encoded_cols = list(df.columns)
+        # test
+        else:
+            df = self._fill_test_values(df)
+
         for col in df.columns:
-            le = LabelEncoder()
-            le.fit(list(df[col]))
-            self.label_encoder_dict[col] = le
-            df.loc[:, col] = le.transform(list(df[col]))
+            df.loc[:, col] = self.label_encoder_dict[col].transform(list(df[col]))
         return df
 
     def dummy_encode(self, df):
-        # ToDo: label encode categorical features
-        pass
+        """
+        One hot encode.
+        :param df: 
+        :return: 
+        """
+        # filter columns with too many unique values
+        columns = list(df.columns)
+        for col in columns:
+            if len(df[col].unique()) > DUMMY_ENCODE_MAX_NUM_VALS:
+                df.drop(col, inplace=True, axis=1)
+
+        # during training
+        if self.is_train:
+            self._collect_train_values(df)
+            # no need to drop first since NaN is one of the type, which will automatically be dropped
+            df = pd.get_dummies(df)
+
+            self.encoded_cols = list(df.columns)
+            return df
+
+        # during test
+        else:
+            # deal with labels unseen in train set
+            df = self._fill_test_values(df)
+            # no need to drop first since NaN is one of the type, which will automatically be dropped
+            df = pd.get_dummies(df)
+
+            # deal with values in train set but not in test
+            for col in self.encoded_cols:
+                if col not in df.columns:
+                    df.loc[:, col] = 0
+
+            # reorder columns to be consistent with train set
+            return df[self.encoded_cols]
 
     def numeric_encode(self, df, y_col):
         """
@@ -118,5 +206,3 @@ class DataProcessorCategorical(DataProcessorBase):
         df = df.fillna(df.mean().to_dict())
 
         return df[x_cols]
-
-

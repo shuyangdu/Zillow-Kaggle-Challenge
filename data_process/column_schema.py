@@ -49,6 +49,10 @@ PROPERTIES_RENAME_DICT = {
     'heatingorsystemtypeid': 'heating',
     'airconditioningtypeid': 'aircon',
     'architecturalstyletypeid': 'architectural_style',
+    'pooltypeid10': 'flag_hot_tub',
+    'pooltypeid2': 'flag_spa',
+    'pooltypeid7': 'flag_no_tub_or_spa',
+    'rawcensustractandblock': 'census_block_id',
 }
 
 TRANSACTION_RENAME_DICT = {
@@ -89,6 +93,38 @@ NUMERICAL_COLS = [
     # 'tax_year',  # only one value, deleted
     'tax_delinquency_year',
     'quality',
+    'latitude',
+    'longitude',
+]
+
+LOG_COLS = [
+    'area_patio',
+    'area_shed',
+    'area_pool',
+    'area_lot',
+    'area_garage',
+    'area_firstfloor_finished',
+    'area_total_finished_calc',
+    'area_basic',
+    'area_live_finished',
+    'area_liveperi_finished',
+    'area_total_finished',
+    'area_live_entry_finished',
+    'num_unit',
+    'num_room',
+    'num_bathroom',
+    'num_bedroom',
+    'num_bathroom_calc',
+    'num_bathroom_full',
+    'num_bathroom_quarter',
+    'num_fireplace',
+    'num_garage',
+    'tax_total',
+    'tax_building',
+    'tax_land',
+    'tax_property',
+    # 'tax_year',  # only one value, deleted
+    'tax_delinquency_year',
 ]
 
 CATEGORICAL_COLS = [
@@ -101,7 +137,10 @@ CATEGORICAL_COLS = [
     'zoning_landuse',
     'zoning_landuse_county',
     'flag_fireplace',
-    'flag_tub',
+    'flag_hot_tub',
+    'flag_spa',
+    'flag_no_tub_or_spa',
+    # 'flag_tub',  included by flag_hot_tub and flag_spa
     'framing',
     'material',
     'deck',
@@ -109,4 +148,6 @@ CATEGORICAL_COLS = [
     'heating',
     'aircon',
     'architectural_style',
+    'fips',
+    'transaction_month',  # added feature based on transaction date
 ]

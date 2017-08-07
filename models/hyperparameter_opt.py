@@ -4,11 +4,12 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error
 from hyperopt import fmin, tpe, Trials, STATUS_OK, space_eval
+from models.backtest import BackTest
 
 
 class HyperParameterOpt(object):
     """
-    Class to do hyper-parameter optimization.
+    class to do hyper-parameter optimization.
     """
 
     @staticmethod
@@ -27,20 +28,18 @@ class HyperParameterOpt(object):
             d[key] = val[0]
         return d
 
-    def __init__(self, model_class=None, data_process_pipeline=None, df=None, fixed_params=None,
+    def __init__(self, model_class=None, data_process_pipeline=None, fixed_params=None,
                  search_space=None, max_evals=1):
         """
         Constructor.
         :param model_class: model class to be optimized
         :param data_process_pipeline: data process pipeline
-        :param df: data frame after pre-processing
         :param fixed_params: parameters needed to construct the model but not in the search space
         :param search_space: dictionary of parameters for the model and corresponding candidate choices
         :param max_evals: max evaluation times
         """
         self.model_class = model_class
         self.data_process_pipeline = data_process_pipeline
-        self.df = df
         self.fixed_params = fixed_params
         self.search_space = search_space
         self.max_evals = max_evals
@@ -48,42 +47,35 @@ class HyperParameterOpt(object):
         self.trials = Trials()
         self.best = None
 
-    def _cross_validation(self, model, seed):
+    def _cross_validation(self, model, df, seed):
         """
         Do the k-fold cross validation for the model
         :param model: concrete model object
+        :param df: whole data frame after pre-processing
+        :param seed: seed for cross validation
         :return: averaged MAE
         """
-        mae_lst = []
-        for df_train, df_val in self.data_process_pipeline.k_fold(self.df, seed):
-            df_train = self.data_process_pipeline.post_process(df_train, is_train=True)
-            df_val = self.data_process_pipeline.post_process(df_val, is_train=False)
+        backtest = BackTest(model=model, data_process_pipeline=self.data_process_pipeline)
+        mae = backtest.single_cv(df, seed)
 
-            X_train = df_train[self.data_process_pipeline.numerical_cols].values
-            y_train = df_train[self.data_process_pipeline.label_col].values
-            X_val = df_val[self.data_process_pipeline.numerical_cols].values
-            y_val = df_val[self.data_process_pipeline.label_col].values
-
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_val)
-            mae_lst.append(mean_absolute_error(y_val, y_pred))
-
-        results = {'loss': np.mean(mae_lst),
-                   'status': STATUS_OK,
-                   'loss_std': np.std(mae_lst)}
+        results = {
+            'loss': mae,
+            'status': STATUS_OK,
+        }
 
         return results
 
-    def optimize(self, seed):
+    def optimize(self, df, seed):
         """
         Optimize the hyper-parameter in search space
+        :param df: whole data frame after pre-processing
         :param seed: values in [11, 12, 21, 22, 31, 32, 41, 42, 51, 52]
         :return: None
         """
         def objective(params):
             params.update(self.fixed_params)
             model = self.model_class(**params)
-            return self._cross_validation(model, seed)
+            return self._cross_validation(model, df, seed)
 
         self.best = fmin(objective, self.search_space, algo=tpe.suggest,
                          max_evals=self.max_evals, trials=self.trials)
@@ -104,3 +96,5 @@ class HyperParameterOpt(object):
         df.index = range(len(df))
         # note, for parameters defined using hp.choice, the value here is the index in hp.choice
         return df
+
+
