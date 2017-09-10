@@ -9,6 +9,7 @@ class BackTest(object):
     """
     Cross validation back test.
     """
+    # ToDo: change model to model flow, which has the same API as ensemble
     def __init__(self, model=None, data_process_pipeline=None):
         """
         Constructor.
@@ -17,6 +18,16 @@ class BackTest(object):
         """
         self.model = model
         self.data_process_pipeline = data_process_pipeline
+
+    # ToDo: Rewrite the single cv for model flow (ensemble flow)
+    # def single_cv(self, X, y, seed=52):
+    #     """
+    #
+    #     :param X:
+    #     :param y:
+    #     :param seed:
+    #     :return:
+    #     """
 
     def single_cv(self, df=None, seed=52):
         """
