@@ -7,6 +7,8 @@ from sklearn.model_selection import KFold
 
 DUMMY_ENCODE_MAX_NUM_VALS = 20
 
+# ToDo: Deprecated, use DataTransformer in data_transformer.py instead
+
 
 class DataProcessorBase(object):
     """

@@ -10,6 +10,8 @@ from data_process.data_processor import DataProcessorNumerical, DataProcessorCat
 
 PATH = '/Users/shuyangdu/Desktop/ZillowChallenge/zillow-kaggle-challenge'
 
+# ToDo: Deprecated, use DataProcessor in data_transform_processor.py instead
+
 
 class DataProcessPipeline(object):
     """

@@ -16,7 +16,7 @@ class LGBM(object):
         self.feature_name = feature_name
         self.categorical_feature = categorical_feature
 
-    def fit(self, X=None, y=None):
+    def fit(self, X, y):
         """
         Wrap LGBMRegressor fit.
         :param X: 
@@ -25,7 +25,7 @@ class LGBM(object):
         """
         self.model.fit(X=X, y=y, feature_name=self.feature_name, categorical_feature=self.categorical_feature)
 
-    def predict(self, X=None):
+    def predict(self, X):
         """
         Wrap LGBMRegressor predict.
         :param X: 

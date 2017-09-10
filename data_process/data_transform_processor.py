@@ -15,6 +15,8 @@ class DataProcessor(object):
     """
     Data process. Make use of TransformerNumerical and TransformerCategorical.
     """
+    # class attribute, seeds for 10 cross validation
+    cv_seeds = [11, 12, 21, 22, 31, 32, 41, 42, 51, 52]
 
     # global class attribute
     properties_rename_dict = PROPERTIES_RENAME_DICT
