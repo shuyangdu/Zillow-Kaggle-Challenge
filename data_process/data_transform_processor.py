@@ -1,12 +1,13 @@
 from __future__ import print_function
 
-import pandas as pd
-import numpy as np
-import os
 import cPickle
-from data_process.column_schema import (PROPERTIES_RENAME_DICT, TRANSACTION_RENAME_DICT,
-                                        NUMERICAL_COLS, CATEGORICAL_COLS, LOG_COLS, LABEL_COL)
+import os
+
+import numpy as np
+
 from data_process.data_transformer import TransformerNumerical, TransformerCategorical
+from schema.core import PROPERTIES_RENAME_DICT, TRANSACTION_RENAME_DICT
+from schema.columns_original import NUMERICAL_COLS, CATEGORICAL_COLS, LOG_COLS, LABEL_COL
 
 PATH = '/Users/shuyangdu/Desktop/ZillowChallenge/zillow-kaggle-challenge'
 
@@ -22,41 +23,41 @@ class DataTransformProcessor(object):
     properties_rename_dict = PROPERTIES_RENAME_DICT
     transaction_rename_dict = TRANSACTION_RENAME_DICT
 
-    @classmethod
-    def _merge(cls, df_properties, df_train):
-        """
-        Rename and merge properties features and train data frames.
-        :param df_properties: 
-        :param df_train: 
-        :return: merged data frame
-        """
-        df_properties.rename(columns=cls.properties_rename_dict, inplace=True)
-        df_train.rename(columns=cls.transaction_rename_dict, inplace=True)
+    # @classmethod
+    # def _merge(cls, df_properties, df_train):
+    #     """
+    #     Rename and merge properties features and train data frames.
+    #     :param df_properties:
+    #     :param df_train:
+    #     :return: merged data frame
+    #     """
+    #     df_properties.rename(columns=cls.properties_rename_dict, inplace=True)
+    #     df_train.rename(columns=cls.transaction_rename_dict, inplace=True)
+    #
+    #     return pd.merge(df_train, df_properties, on='id_parcel', how='left')
 
-        return pd.merge(df_train, df_properties, on='id_parcel', how='left')
-
-    @classmethod
-    def _add_feature(cls, df_merged):
-        """
-        Add features based on feature engineering.
-        :param df_merged: data frame after calling _merge
-        :return: data frame with added features
-        """
-        # add feature based on transaction date
-        df_merged['transaction_month'] = df_merged['date'].str.split('-', expand=True)[1].values
-        return df_merged
-
-    @classmethod
-    def prepare_data(cls, df_properties, df_train):
-        """
-        Merge and add features based on original properties and train data set
-        :param df_properties: 
-        :param df_train: 
-        :return: data set for research
-        """
-        df_merged = cls._merge(df_properties, df_train)
-        df_merged = cls._add_feature(df_merged)
-        return df_merged
+    # @classmethod
+    # def _add_feature(cls, df_merged):
+    #     """
+    #     Add features based on feature engineering.
+    #     :param df_merged: data frame after calling _merge
+    #     :return: data frame with added features
+    #     """
+    #     # add feature based on transaction date
+    #     df_merged['transaction_month'] = df_merged['date'].str.split('-', expand=True)[1].values
+    #     return df_merged
+    #
+    # @classmethod
+    # def prepare_data(cls, df_properties, df_train):
+    #     """
+    #     Merge and add features based on original properties and train data set
+    #     :param df_properties:
+    #     :param df_train:
+    #     :return: data set for research
+    #     """
+    #     df_merged = cls._merge(df_properties, df_train)
+    #     df_merged = cls._add_feature(df_merged)
+    #     return df_merged
 
     @classmethod
     def k_fold(cls, seed=52):

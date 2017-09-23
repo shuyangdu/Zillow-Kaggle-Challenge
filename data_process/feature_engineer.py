@@ -1,13 +1,13 @@
 from __future__ import print_function
 
-import pandas as pd
-import numpy as np
 import math
 
-from data_process.column_schema import (PROPERTIES_RENAME_DICT, TRANSACTION_RENAME_DICT,
-                                        NUMERICAL_COLS, CATEGORICAL_COLS, LOG_COLS)
+import numpy as np
+import pandas as pd
+
 from data_transform_processor import DataTransformProcessor
 from models.tree_models.lgbm import LGBM
+from schema.core import PROPERTIES_RENAME_DICT, TRANSACTION_RENAME_DICT
 
 
 class FeatureEngineer(object):
@@ -16,15 +16,36 @@ class FeatureEngineer(object):
     """
 
     properties_rename_dict = PROPERTIES_RENAME_DICT
+    transaction_rename_dict = TRANSACTION_RENAME_DICT
 
     @classmethod
-    def rename(cls, df):
+    def rename(cls, df, is_properties=True):
         """
         Rename raw properties table.
         :param df: raw feature df
+        :param is_properties: rename properties df or transaction df
         :return: renamed feature df
         """
-        return df.rename(columns=cls.properties_rename_dict)
+        if is_properties:
+            return df.rename(columns=cls.properties_rename_dict)
+        else:
+            return df.rename(columns=cls.transaction_rename_dict)
+
+    @classmethod
+    def merge(cls, df_properties, df_transaction):
+        """
+        Merge.
+        :param df_properties: 
+        :param df_transaction: 
+        :return: 
+        """
+        # check whether the df has been renamed, if not, rename it
+        if 'id_parcel' not in df_properties:
+            df_properties = cls.rename(df_properties, is_properties=True)
+        if 'id_parcel' not in df_transaction:
+            df_transaction = cls.rename(df_transaction, is_properties=False)
+
+        return pd.merge(df_transaction, df_properties, on='id_parcel', how='left')
 
     @staticmethod
     def _fill_column(df, model, data_transform_processor):
@@ -158,7 +179,8 @@ class FeatureEngineer(object):
             df['{}_square'.format(col)] = df[col] ** 2
 
         # variables related to rooms and areas
-        df['area_room_avg'] = df['area_total_finished_calc'] / df['num_room']
+        df['area_room_avg'] = (df['area_total_finished_calc'] / df['num_room']).replace(np.inf, np.nan)
+
         df['num_extra_room'] = df['num_room'] - df['num_bedroom'] - df['num_bathroom']
         df['area_extra'] = df['area_lot'] - df['area_total_finished_calc']
 
@@ -184,5 +206,7 @@ class FeatureEngineer(object):
 
         # whether the property has multiple sales record in given period
         df['flag_multiple_sales'] = df['id_parcel'].duplicated().values.astype(int)
+
+        return df
 
 
