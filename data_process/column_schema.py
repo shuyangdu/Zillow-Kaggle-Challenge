@@ -29,10 +29,10 @@ PROPERTIES_RENAME_DICT = {
     'regionidcity': 'region_city',
     'regionidzip': 'region_zip',
     'regionidneighborhood': 'region_neighbor',
-    'taxvaluedollarcnt': 'tax_total',
-    'structuretaxvaluedollarcnt': 'tax_building',
-    'landtaxvaluedollarcnt': 'tax_land',
-    'taxamount': 'tax_property',
+    'taxvaluedollarcnt': 'value_total',
+    'structuretaxvaluedollarcnt': 'value_building',
+    'landtaxvaluedollarcnt': 'value_land',
+    'taxamount': 'value_tax_property',
     'assessmentyear': 'tax_year',
     'taxdelinquencyflag': 'tax_flag_delinquency',
     'taxdelinquencyyear': 'tax_delinquency_year',
@@ -70,26 +70,26 @@ NUMERICAL_COLS = [
     'area_garage',
     'area_firstfloor_finished',
     'area_total_finished_calc',
-    'area_basic',
-    'area_live_finished',
-    'area_liveperi_finished',
-    'area_total_finished',
-    'area_live_entry_finished',
+    # 'area_basic',  # perfectly correlates with area_total_finished_calc
+    # 'area_live_finished',  # perfectly correlates with area_total_finished_calc
+    # 'area_liveperi_finished',  # perfectly correlates with area_total_finished_calc
+    # 'area_total_finished',  # perfectly correlates with area_total_finished_calc
+    # 'area_live_entry_finished',  # perfectly correlates with area_firstfloor_finished
     'num_unit',
     'num_story',
     'num_room',
     'num_bathroom',
     'num_bedroom',
-    'num_bathroom_calc',
-    'num_bathroom_full',
+    # 'num_bathroom_calc',  # perfectly correlates with num_bathroom
+    # 'num_bathroom_full',  # perfectly correlates with num_bathroom
     'num_bathroom_quarter',
     'num_fireplace',
     'num_pool',
     'num_garage',
-    'tax_total',
-    'tax_building',
-    'tax_land',
-    'tax_property',
+    'value_total',
+    'value_building',
+    'value_land',
+    'value_tax_property',
     # 'tax_year',  # only one value, deleted
     'tax_delinquency_year',
     'quality',
@@ -105,24 +105,24 @@ LOG_COLS = [
     'area_garage',
     'area_firstfloor_finished',
     'area_total_finished_calc',
-    'area_basic',
-    'area_live_finished',
-    'area_liveperi_finished',
-    'area_total_finished',
-    'area_live_entry_finished',
+    # 'area_basic',
+    # 'area_live_finished',
+    # 'area_liveperi_finished',
+    # 'area_total_finished',
+    # 'area_live_entry_finished',
     'num_unit',
     'num_room',
     'num_bathroom',
     'num_bedroom',
-    'num_bathroom_calc',
-    'num_bathroom_full',
+    # 'num_bathroom_calc',
+    # 'num_bathroom_full',
     'num_bathroom_quarter',
     'num_fireplace',
     'num_garage',
-    'tax_total',
-    'tax_building',
-    'tax_land',
-    'tax_property',
+    'value_total',
+    'value_building',
+    'value_land',
+    'value_tax_property',
     # 'tax_year',  # only one value, deleted
     'tax_delinquency_year',
 ]
@@ -136,7 +136,7 @@ CATEGORICAL_COLS = [
     'zoning_property',
     'zoning_landuse',
     'zoning_landuse_county',
-    'flag_fireplace',
+    # 'flag_fireplace',  # use num_firepalce instead
     'flag_hot_tub',
     'flag_spa',
     'flag_no_tub_or_spa',
@@ -151,3 +151,5 @@ CATEGORICAL_COLS = [
     'fips',
     'transaction_month',  # added feature based on transaction date
 ]
+
+LABEL_COL = 'logerror'

@@ -4,7 +4,7 @@ from __future__ import absolute_import
 import numpy as np
 from sklearn.metrics import mean_absolute_error
 
-from data_process.data_transform_processor import DataProcessor
+from data_process.data_transform_processor import DataTransformProcessor
 
 
 class BackTest(object):
@@ -27,7 +27,7 @@ class BackTest(object):
         :return: mean MAE
         """
         mae_lst = []
-        for train_idx, val_idx in DataProcessor.k_fold(seed=seed):
+        for train_idx, val_idx in DataTransformProcessor.k_fold(seed=seed):
             X_train, X_val = X[train_idx], X[val_idx]
             y_train, y_val = y[train_idx], y[val_idx]
 
@@ -68,6 +68,6 @@ class BackTest(object):
         :return: mean MAE
         """
         mae_lst = []
-        for seed in DataProcessor.cv_seeds:
+        for seed in DataTransformProcessor.cv_seeds:
             mae_lst.append(self.single_cv(X, y, seed=seed))
         return np.mean(mae_lst)

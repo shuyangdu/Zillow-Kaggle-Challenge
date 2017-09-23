@@ -1,18 +1,24 @@
 from __future__ import print_function
-from lightgbm import LGBMRegressor
+from lightgbm import LGBMRegressor, LGBMClassifier
 
 
 class LGBM(object):
     """
     Class wrapper for LightGBM regressor.
     """
-    def __init__(self, feature_name=None, categorical_feature=None, **model_params):
+    def __init__(self, is_classifier=False, feature_name=None, categorical_feature=None, **model_params):
         """
         Constructor.
+        :param is_classifier: if True use LGBMClassifier, otherwise use LGBMRegressor
         :param feature_name: list of feature column names, could be original_feature_cols if using label encoding
         :param categorical_feature: list of categorical feature column names
         """
-        self.model = LGBMRegressor(**model_params)
+        if is_classifier:
+            # use multiclass as the objective, should set num_class as well
+            self.model = LGBMClassifier(**model_params)
+        else:
+            # use regression_l1 as the objective
+            self.model = LGBMRegressor(**model_params)
         self.feature_name = feature_name
         self.categorical_feature = categorical_feature
 
