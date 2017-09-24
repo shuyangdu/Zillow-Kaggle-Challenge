@@ -1,6 +1,8 @@
 from __future__ import print_function
 from copy import deepcopy
 
+import pandas as pd
+
 
 class ModelFlow(object):
     """
@@ -41,3 +43,27 @@ class ModelFlow(object):
 
         # predict
         return self.model.predict(X)
+
+    @property
+    def feature_importance_df(self):
+        """
+        Data Frame of feature importance for each feature, can only be used when model is LightGBM family models
+        :return:
+        """
+        df = pd.DataFrame(
+            self.model.model.feature_importances_,
+            index=self.data_processor.categorical_cols + self.data_processor.numerical_cols,
+            columns=['feature_importance'],
+        )
+
+        df.sort_values('feature_importance', ascending=False, inplace=True)
+
+        return df
+
+    @property
+    def feature_importance_plot(self):
+        """
+        Plot the feature importance graph.
+        :return: 
+        """
+        return self.feature_importance_df.plot(kind='barh', figsize=(10, 16))

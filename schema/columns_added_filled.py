@@ -137,7 +137,7 @@ CATEGORICAL_COLS = [
     'fips',
     # ------ feature added ------
     'transaction_month',  # added feature based on transaction date
-    'flag_multiple_sales',
+    # 'flag_multiple_sales',
     'region_county_filled',
     'region_city_filled',
     'region_zip_filled',

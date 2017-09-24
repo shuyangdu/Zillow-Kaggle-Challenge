@@ -23,42 +23,6 @@ class DataTransformProcessor(object):
     properties_rename_dict = PROPERTIES_RENAME_DICT
     transaction_rename_dict = TRANSACTION_RENAME_DICT
 
-    # @classmethod
-    # def _merge(cls, df_properties, df_train):
-    #     """
-    #     Rename and merge properties features and train data frames.
-    #     :param df_properties:
-    #     :param df_train:
-    #     :return: merged data frame
-    #     """
-    #     df_properties.rename(columns=cls.properties_rename_dict, inplace=True)
-    #     df_train.rename(columns=cls.transaction_rename_dict, inplace=True)
-    #
-    #     return pd.merge(df_train, df_properties, on='id_parcel', how='left')
-
-    # @classmethod
-    # def _add_feature(cls, df_merged):
-    #     """
-    #     Add features based on feature engineering.
-    #     :param df_merged: data frame after calling _merge
-    #     :return: data frame with added features
-    #     """
-    #     # add feature based on transaction date
-    #     df_merged['transaction_month'] = df_merged['date'].str.split('-', expand=True)[1].values
-    #     return df_merged
-    #
-    # @classmethod
-    # def prepare_data(cls, df_properties, df_train):
-    #     """
-    #     Merge and add features based on original properties and train data set
-    #     :param df_properties:
-    #     :param df_train:
-    #     :return: data set for research
-    #     """
-    #     df_merged = cls._merge(df_properties, df_train)
-    #     df_merged = cls._add_feature(df_merged)
-    #     return df_merged
-
     @classmethod
     def k_fold(cls, seed=52):
         """
@@ -95,6 +59,8 @@ class DataTransformProcessor(object):
         self.numerical_col_idx = None
         self.categorical_col_idx = None
 
+        self.is_fitted = False
+
     def pre_process(self, df):
         """
         Fill NaN, take log for certain numerical features, label encoding all categorical features
@@ -108,7 +74,9 @@ class DataTransformProcessor(object):
         df_numerical.loc[:, self.log_cols] = TransformerNumerical.log(df_numerical[self.log_cols])
 
         df_categorical = TransformerCategorical.fill_nan(df_categorical)
-        df_categorical = TransformerCategorical.label_encoding(df_categorical)
+
+        # fit and transform behaves differently for label encoding!
+        # df_categorical = TransformerCategorical.label_encoding(df_categorical)
 
         # calculate class attribute for future use, assume original feature cols are the same for all data processors
         self.categorical_col_idx = range(df_categorical.shape[1])
@@ -134,11 +102,16 @@ class DataTransformProcessor(object):
         :param y: placeholder for API consistency
         :return: None
         """
+        assert self.numerical_col_idx is not None, 'numerical_col_idx is None! Must use pre_process first!'
+        assert self.categorical_col_idx is not None, 'categorical_col_idx is None! Must use pre_process first!'
+
         # fit numerical transformer
         self.transformer_numerical.fit(X[:, self.numerical_col_idx])
 
         # fit categorical transformer
         self.transformer_categorical.fit(X[:, self.categorical_col_idx])
+
+        self.is_fitted = True
 
     def transform(self, X):
         """
@@ -146,9 +119,13 @@ class DataTransformProcessor(object):
         :param X: feature numpy array
         :return: transformed feature numpy array
         """
+        assert self.is_fitted, 'Must fit the data processor before using transform!'
+
         X_numerical = self.transformer_numerical.transform(X[:, self.numerical_col_idx])
         X_categorical = self.transformer_categorical.transform(X[:, self.categorical_col_idx])
-        return np.concatenate([X_categorical, X_numerical], axis=1)
+
+        # note: self.categorical_col_idx does not reflect true categorical col after dummy encoding
+        return np.concatenate([X_categorical, X_numerical], axis=1).astype(float)
 
     def fit_transform(self, X, y=None):
         """
@@ -159,3 +136,39 @@ class DataTransformProcessor(object):
         """
         self.fit(X)
         return self.transform(X)
+
+        # @classmethod
+        # def _merge(cls, df_properties, df_train):
+        #     """
+        #     Rename and merge properties features and train data frames.
+        #     :param df_properties:
+        #     :param df_train:
+        #     :return: merged data frame
+        #     """
+        #     df_properties.rename(columns=cls.properties_rename_dict, inplace=True)
+        #     df_train.rename(columns=cls.transaction_rename_dict, inplace=True)
+        #
+        #     return pd.merge(df_train, df_properties, on='id_parcel', how='left')
+
+        # @classmethod
+        # def _add_feature(cls, df_merged):
+        #     """
+        #     Add features based on feature engineering.
+        #     :param df_merged: data frame after calling _merge
+        #     :return: data frame with added features
+        #     """
+        #     # add feature based on transaction date
+        #     df_merged['transaction_month'] = df_merged['date'].str.split('-', expand=True)[1].values
+        #     return df_merged
+        #
+        # @classmethod
+        # def prepare_data(cls, df_properties, df_train):
+        #     """
+        #     Merge and add features based on original properties and train data set
+        #     :param df_properties:
+        #     :param df_train:
+        #     :return: data set for research
+        #     """
+        #     df_merged = cls._merge(df_properties, df_train)
+        #     df_merged = cls._add_feature(df_merged)
+        #     return df_merged
