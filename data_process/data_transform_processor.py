@@ -79,10 +79,10 @@ class DataTransformProcessor(object):
         # df_categorical = TransformerCategorical.label_encoding(df_categorical)
 
         # calculate class attribute for future use, assume original feature cols are the same for all data processors
-        self.categorical_col_idx = range(df_categorical.shape[1])
-        self.numerical_col_idx = range(df_categorical.shape[1], df_categorical.shape[1] + df_numerical.shape[1])
+        self.numerical_col_idx = range(df_numerical.shape[1])
+        self.categorical_col_idx = range(df_numerical.shape[1], df_numerical.shape[1] + df_categorical.shape[1])
 
-        return np.concatenate([df_categorical.values, df_numerical.values], axis=1)
+        return np.concatenate([df_numerical.values, df_categorical.values], axis=1)
 
     def get_params(self, deep=False):
         """
@@ -125,7 +125,7 @@ class DataTransformProcessor(object):
         X_categorical = self.transformer_categorical.transform(X[:, self.categorical_col_idx])
 
         # note: self.categorical_col_idx does not reflect true categorical col after dummy encoding
-        return np.concatenate([X_categorical, X_numerical], axis=1).astype(float)
+        return np.concatenate([X_numerical, X_categorical], axis=1).astype(float)
 
     def fit_transform(self, X, y=None):
         """

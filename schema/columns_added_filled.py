@@ -3,7 +3,7 @@ NUMERICAL_COLS = [
     'area_basement',
     'area_patio',
     'area_shed',
-    'area_pool',
+    # 'area_pool',
     'area_lot',
     'area_garage',
     'area_firstfloor_finished',
@@ -34,6 +34,7 @@ NUMERICAL_COLS = [
     'latitude',
     'longitude',
     # ------ features added ------
+    'area_pool_filled',
     'ratio_value_land_vs_building',
     'ratio_value_tax_property_vs_total',
     'ratio_area_living_vs_total',
@@ -71,7 +72,7 @@ NUMERICAL_COLS = [
 LOG_COLS = [
     'area_patio',
     'area_shed',
-    'area_pool',
+    # 'area_pool',
     'area_lot',
     'area_garage',
     'area_firstfloor_finished',
@@ -97,6 +98,7 @@ LOG_COLS = [
     # 'tax_year',  # only one value, deleted
     'tax_delinquency_year',
     # ------ features added ------
+    'area_pool_filled',
     'avg_city_area_lot',
     'avg_city_area_total_finished_calc',
     'avg_city_value_building',
