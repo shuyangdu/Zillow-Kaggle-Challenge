@@ -103,8 +103,7 @@ class TransformerCategorical(TransformerBase):
     """
     Process categorical features.
     """
-    # class attribute for global label encoding
-    label_encoder_dict = {}
+
     NaN = 'NaN'
 
     DUMMY_ENCODE_MAX_NUM_VALS = 20
@@ -123,21 +122,24 @@ class TransformerCategorical(TransformerBase):
         df = df.astype(str)
         return df
 
-    @classmethod
-    def label_encoding(cls, df):
-        """
-        Label encoding for whole data set, no need to handle train and test differently.
-        :param df: 
-        :return: encoded data frame
-        """
-        for col in df.columns:
-            le = LabelEncoder()
-            df.loc[:, col] = le.fit_transform(list(df[col]))
-            cls.label_encoder_dict[col] = le
-        return df
+    # @classmethod
+    # def label_encoding(cls, df):
+    #     """
+    #     Label encoding for whole data set, no need to handle train and test differently.
+    #     :param df:
+    #     :return: encoded data frame
+    #     """
+    #     for col in df.columns:
+    #         le = LabelEncoder()
+    #         df.loc[:, col] = le.fit_transform(list(df[col]))
+    #         cls.label_encoder_dict[col] = le
+    #     return df
 
     def __init__(self, use_dummy=False):
         super(TransformerCategorical, self).__init__()
+
+        self.label_encoder_dict = {}
+        self.categorical_value_dict = {}
 
         self.use_dummy = use_dummy
 
@@ -157,6 +159,30 @@ class TransformerCategorical(TransformerBase):
             'use_dummy': self.use_dummy,
         }
 
+    def _collect_train_values(self, X):
+        """
+        Collect unique categorical value for each column, add NaN if there is none.
+        :param X: numpy arrays features after pre-process
+        :return: 
+        """
+        # only do this for label encoding
+        for i in range(X.shape[1]):
+            col = X[:, i]
+            self.categorical_value_dict[i] = np.unique(col)
+            if self.NaN not in self.categorical_value_dict[i]:
+                self.categorical_value_dict[i] = np.append(self.categorical_value_dict[i], self.NaN)
+
+    def _fill_test_values(self, X):
+        """
+        Fill unseen values in test set to be NaN.
+        :param X: numpy arrays features after pre-process
+        :return: 
+        """
+        for i in range(X.shape[1]):
+            col = X[:, i]
+            X[~np.in1d(col, self.categorical_value_dict[i]), i] = self.NaN
+        return X
+
     def fit(self, X, y=None):
         """
         Fit categorical transformer.
@@ -164,6 +190,14 @@ class TransformerCategorical(TransformerBase):
         :param y: placeholder for API consistency
         :return: None
         """
+        # fit label encoder
+        self._collect_train_values(X)
+        for i in range(X.shape[1]):
+            le = LabelEncoder()
+            le.fit(list(self.categorical_value_dict[i]))
+            self.label_encoder_dict[i] = le
+
+        # use dummy encoding if needed
         if self.use_dummy:
             # filter columns with too many unique values
             self.dummy_encode_col_idx = []
@@ -180,6 +214,11 @@ class TransformerCategorical(TransformerBase):
         :param X: categorical feature numpy array
         :return: transformed categorical feature numpy array
         """
+        # transform using label encoder
+        X = self._fill_test_values(X)
+        for i in range(X.shape[1]):
+            X[:, i] = self.label_encoder_dict[i].transform(list(X[:, i]))
+
         if self.use_dummy:
             X = self.dummy_encoder.transform(X[:, self.dummy_encode_col_idx])
         return X
