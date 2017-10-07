@@ -72,7 +72,7 @@ class FeatureEngineer(object):
         y_all[~idx_train] = y_pred
         return y_all
 
-    def model_based_fill_missing_value(self, df):
+    def fill_missing_value_model_based(self, df):
         """
         Use supervised model to learn features from non-missing values, 
         take too long to run, separate from original code
@@ -114,7 +114,7 @@ class FeatureEngineer(object):
         return df
 
     @staticmethod
-    def fill_missing_value(df, inplace=False):
+    def fill_missing_value_stats(df, inplace=False):
         """
         High level function to fill missing values
         :param df: 
@@ -126,8 +126,8 @@ class FeatureEngineer(object):
 
         # fill area pool
         area_pool_median = df.loc[df['num_pool'].notnull() & (df['area_pool'].notnull()), 'area_pool'].median()
-        df.loc[df['num_pool'].notnull() & df['area_pool'].isnull(), 'area_pool'] = area_pool_median
-        df.loc[df['num_pool'].isnull(), 'area_pool'] = 0
+        df.loc[df['num_pool'].notnull() & df['area_pool'].isnull(), 'area_pool_filled'] = area_pool_median
+        df.loc[df['num_pool'].isnull(), 'area_pool_filled'] = 0
 
         return df
 

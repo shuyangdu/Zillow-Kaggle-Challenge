@@ -9,7 +9,7 @@ from data_process.data_transformer import TransformerNumerical, TransformerCateg
 from schema.core import PROPERTIES_RENAME_DICT, TRANSACTION_RENAME_DICT
 from schema.columns_original import NUMERICAL_COLS, CATEGORICAL_COLS, LOG_COLS, LABEL_COL
 
-PATH = '/Users/shuyangdu/Desktop/ZillowChallenge/zillow-kaggle-challenge'
+PATH = '/Users/shuyangdu/Desktop/ZillowChallenge/zillow-kaggle-challenge/folds_new'
 
 
 class DataTransformProcessor(object):
@@ -17,7 +17,8 @@ class DataTransformProcessor(object):
     Data process. Make use of TransformerNumerical and TransformerCategorical.
     """
     # class attribute, seeds for 10 cross validation
-    cv_seeds = [11, 12, 21, 22, 31, 32, 41, 42, 51, 52]
+    # cv_seeds = [11, 12, 21, 22, 31, 32, 41, 42, 51, 52]
+    cv_seeds = [12, 22, 32, 42, 52]
 
     # global class attribute
     properties_rename_dict = PROPERTIES_RENAME_DICT
@@ -27,10 +28,10 @@ class DataTransformProcessor(object):
     def k_fold(cls, seed=52):
         """
         Return the train and test split index based on the random seed
-        :param seed: values in [11, 12, 21, 22, 31, 32, 41, 42, 51, 52]
+        :param seed: values in [12, 22, 32, 42, 52]
         :return: train and test index (iterator)
         """
-        folds = cPickle.load(open(os.path.join(PATH, 'folds', '_folds_{}.p'.format(seed)), 'rb'))
+        folds = cPickle.load(open(os.path.join(PATH, '_folds_{}.p'.format(seed)), 'rb'))
 
         for train_index, test_index in folds:
             yield train_index, test_index
@@ -133,39 +134,3 @@ class DataTransformProcessor(object):
         """
         self.fit(X)
         return self.transform(X)
-
-        # @classmethod
-        # def _merge(cls, df_properties, df_train):
-        #     """
-        #     Rename and merge properties features and train data frames.
-        #     :param df_properties:
-        #     :param df_train:
-        #     :return: merged data frame
-        #     """
-        #     df_properties.rename(columns=cls.properties_rename_dict, inplace=True)
-        #     df_train.rename(columns=cls.transaction_rename_dict, inplace=True)
-        #
-        #     return pd.merge(df_train, df_properties, on='id_parcel', how='left')
-
-        # @classmethod
-        # def _add_feature(cls, df_merged):
-        #     """
-        #     Add features based on feature engineering.
-        #     :param df_merged: data frame after calling _merge
-        #     :return: data frame with added features
-        #     """
-        #     # add feature based on transaction date
-        #     df_merged['transaction_month'] = df_merged['date'].str.split('-', expand=True)[1].values
-        #     return df_merged
-        #
-        # @classmethod
-        # def prepare_data(cls, df_properties, df_train):
-        #     """
-        #     Merge and add features based on original properties and train data set
-        #     :param df_properties:
-        #     :param df_train:
-        #     :return: data set for research
-        #     """
-        #     df_merged = cls._merge(df_properties, df_train)
-        #     df_merged = cls._add_feature(df_merged)
-        #     return df_merged
