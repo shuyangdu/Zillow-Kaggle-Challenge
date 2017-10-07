@@ -52,7 +52,7 @@ class ModelFlow(object):
         """
         df = pd.DataFrame(
             self.model.model.feature_importances_,
-            index=self.data_processor.categorical_cols + self.data_processor.numerical_cols,
+            index=self.data_processor.numerical_cols + self.data_processor.categorical_cols,
             columns=['feature_importance'],
         )
 
