@@ -75,9 +75,6 @@ class DataTransformProcessor(object):
 
         df_categorical = TransformerCategorical.fill_nan(df_categorical)
 
-        # fit and transform behaves differently for label encoding!
-        # df_categorical = TransformerCategorical.label_encoding(df_categorical)
-
         # calculate class attribute for future use, assume original feature cols are the same for all data processors
         self.numerical_col_idx = range(df_numerical.shape[1])
         self.categorical_col_idx = range(df_numerical.shape[1], df_numerical.shape[1] + df_categorical.shape[1])

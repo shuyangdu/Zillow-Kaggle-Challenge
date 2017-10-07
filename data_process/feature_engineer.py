@@ -204,6 +204,9 @@ class FeatureEngineer(object):
         # transaction month
         df['transaction_month'] = df['date'].str.split('-', expand=True)[1].values
 
+        # transaction year
+        df['transaction_year'] = df['date'].str.split('-', expand=True)[0].values
+
         # whether the property has multiple sales record in given period
         df['flag_multiple_sales'] = df['id_parcel'].duplicated().values.astype(int)
 
