@@ -73,7 +73,7 @@ class BackTest(object):
 
         print('Single CV finished')
 
-        return mae_lst
+        return np.mean(mae_lst)
 
     def full_cv(self, X, y):
         """

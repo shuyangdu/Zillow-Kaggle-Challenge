@@ -31,7 +31,7 @@ class HyperParameterOpt(object):
         return d
 
     def __init__(self, model_class=None, data_processor=None, fixed_params=None,
-                 search_space=None, max_evals=1):
+                 search_space=None, max_evals=1, max_workers=1):
         """
         Constructor.
         :param model_class: model class to be optimized
@@ -39,12 +39,14 @@ class HyperParameterOpt(object):
         :param fixed_params: parameters needed to construct the model but not in the search space
         :param search_space: dictionary of parameters for the model and corresponding candidate choices
         :param max_evals: max evaluation times
+        :param max_workers: number of processes for parallel
         """
         self.model_class = model_class
         self.data_processor = data_processor
         self.fixed_params = fixed_params
         self.search_space = search_space
         self.max_evals = max_evals
+        self.max_workers = max_workers
 
         self.trials = Trials()
         self.best = None
@@ -59,7 +61,7 @@ class HyperParameterOpt(object):
         :return: averaged MAE
         """
         model_flow = ModelFlow(model=model, data_processor=self.data_processor)
-        backtest = BackTest(model_flow=model_flow)
+        backtest = BackTest(model_flow=model_flow, max_workers=self.max_workers)
         mae = backtest.single_cv(X, y, seed=seed)
 
         results = {
