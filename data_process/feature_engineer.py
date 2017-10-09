@@ -173,6 +173,9 @@ class FeatureEngineer(object):
         df['latitude_cos'] = df['latitude'].apply(math.cos)
         df['longitude_cos'] = df['longitude'].apply(math.cos)
         df['latitude_times_longitude'] = df['latitude'] * df['longitude_cos']
+        df['coordinate_x'] = df.apply(lambda r: 6371 * np.cos(r['latitude']) * np.cos(r['longitude']), axis=1)
+        df['coordinate_y'] = df.apply(lambda r: 6371 * np.cos(r['latitude']) * np.sin(r['longitude']), axis=1)
+        df['coordinate_z'] = df.apply(lambda r: 6371 * np.sin(r['latitude']), axis=1)
 
         # polynomials of variables
         for col in ['area_lot', 'area_total_finished_calc', 'value_building', 'value_tax_property', 'value_total']:

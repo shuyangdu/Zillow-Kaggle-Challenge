@@ -36,7 +36,7 @@ class TransformerNumerical(TransformerBase):
         :param df: 
         :return: df
         """
-        return df.fillna(0)
+        return df.fillna(0).astype(float)
 
     @classmethod
     def log(cls, df):
