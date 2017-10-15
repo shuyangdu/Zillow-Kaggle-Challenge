@@ -57,15 +57,16 @@ class DataTransformProcessor(object):
         self.log_cols = log_cols
         self.label_col = label_col
 
-        self.numerical_col_idx = None
-        self.categorical_col_idx = None
+        self.numerical_col_idx = range(len(numerical_cols))
+        self.categorical_col_idx = range(len(numerical_cols), len(numerical_cols) + len(categorical_cols))
 
         self.is_fitted = False
 
-    def pre_process(self, df):
+    def pre_process(self, df, fit=True):
         """
         Fill NaN, take log for certain numerical features, label encoding all categorical features
         :param df: raw data frame
+        :param fit: if true, fit label encoder
         :return: feature numpy array
         """
         df_numerical = df[self.numerical_cols].copy()
@@ -76,11 +77,15 @@ class DataTransformProcessor(object):
 
         df_categorical = TransformerCategorical.fill_nan(df_categorical)
 
-        # calculate class attribute for future use, assume original feature cols are the same for all data processors
-        self.numerical_col_idx = range(df_numerical.shape[1])
-        self.categorical_col_idx = range(df_numerical.shape[1], df_numerical.shape[1] + df_categorical.shape[1])
+        X_numerical = df_numerical.values
+        X_categorical = df_categorical.values
 
-        return np.concatenate([df_numerical.values, df_categorical.values], axis=1)
+        # label encode
+        if fit:
+            self.transformer_categorical.fit_label_encode(X_categorical)
+        X_categorical = self.transformer_categorical.transform_label_encode(X_categorical)
+
+        return np.concatenate([X_numerical, X_categorical], axis=1)
 
     def get_params(self, deep=False):
         """
@@ -88,7 +93,12 @@ class DataTransformProcessor(object):
         :param deep: 
         :return: dictionary of parameters
         """
-        params_dict = {}
+        params_dict = {
+            'numerical_cols': self.numerical_cols,
+            'categorical_cols': self.categorical_cols,
+            'log_cols': self.log_cols,
+            'label_col': self.label_col,
+        }
         params_dict.update(self.transformer_numerical.get_params())
         params_dict.update(self.transformer_categorical.get_params())
         return params_dict
@@ -104,7 +114,7 @@ class DataTransformProcessor(object):
         assert self.categorical_col_idx is not None, 'categorical_col_idx is None! Must use pre_process first!'
 
         # fit numerical transformer
-        self.transformer_numerical.fit(X[:, self.numerical_col_idx])
+        self.transformer_numerical.fit(X[:, self.numerical_col_idx].astype(float))
 
         # fit categorical transformer
         self.transformer_categorical.fit(X[:, self.categorical_col_idx])
@@ -119,7 +129,7 @@ class DataTransformProcessor(object):
         """
         assert self.is_fitted, 'Must fit the data processor before using transform!'
 
-        X_numerical = self.transformer_numerical.transform(X[:, self.numerical_col_idx])
+        X_numerical = self.transformer_numerical.transform(X[:, self.numerical_col_idx].astype(float))
         X_categorical = self.transformer_categorical.transform(X[:, self.categorical_col_idx])
 
         # note: self.categorical_col_idx does not reflect true categorical col after dummy encoding

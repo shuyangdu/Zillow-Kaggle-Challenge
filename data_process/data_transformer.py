@@ -183,11 +183,11 @@ class TransformerCategorical(TransformerBase):
             X[~np.in1d(col, self.categorical_value_dict[i]), i] = self.NaN
         return X
 
-    def fit(self, X, y=None):
+    def fit_label_encode(self, X, y=None):
         """
-        Fit categorical transformer.
-        :param X: categorical feature numpy array, after label encoding in pre-process
-        :param y: placeholder for API consistency
+        Fit label encoder, specifically used in pre-process
+        :param X: categorical feature numpy array
+        :param y: 
         :return: None
         """
         # fit label encoder
@@ -197,11 +197,31 @@ class TransformerCategorical(TransformerBase):
             le.fit(list(self.categorical_value_dict[i]))
             self.label_encoder_dict[i] = le
 
+    def transform_label_encode(self, X):
+        """
+        Transform label encode, specifically used for pre-process
+        :param X: 
+        :return: label encoded X
+        """
+        # transform using label encoder
+        X = self._fill_test_values(X)
+        for i in range(X.shape[1]):
+            X[:, i] = self.label_encoder_dict[i].transform(list(X[:, i]))
+        return X
+
+    def fit(self, X, y=None):
+        """
+        Fit categorical transformer.
+        :param X: categorical feature numpy array, after label encoding in pre-process
+        :param y: placeholder for API consistency
+        :return: None
+        """
         # use dummy encoding if needed
         if self.use_dummy:
             # filter columns with too many unique values
             self.dummy_encode_col_idx = []
             for i in range(X.shape[1]):
+
                 if len(np.unique(X[:, i])) <= self.DUMMY_ENCODE_MAX_NUM_VALS:
                     self.dummy_encode_col_idx.append(i)
 
@@ -214,11 +234,6 @@ class TransformerCategorical(TransformerBase):
         :param X: categorical feature numpy array
         :return: transformed categorical feature numpy array
         """
-        # transform using label encoder
-        X = self._fill_test_values(X)
-        for i in range(X.shape[1]):
-            X[:, i] = self.label_encoder_dict[i].transform(list(X[:, i]))
-
         if self.use_dummy:
             X = self.dummy_encoder.transform(X[:, self.dummy_encode_col_idx])
         return X

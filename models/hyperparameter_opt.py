@@ -100,6 +100,12 @@ class HyperParameterOpt(object):
         df = pd.DataFrame()
         for trial in self.trials.trials:
             params_dict = space_eval(self.search_space, self.transform_trials_vals(trial['misc']['vals']))
+
+            # check dict values
+            for key, value in params_dict.items():
+                if type(value) == list or type(value) == tuple:
+                    params_dict[key] = str(value)
+
             df_params = pd.DataFrame(params_dict, index=[0])
             df_results = pd.DataFrame(trial['result'], index=[0])
             df = pd.concat([df, pd.concat([df_params, df_results], axis=1)], axis=0, ignore_index=True)

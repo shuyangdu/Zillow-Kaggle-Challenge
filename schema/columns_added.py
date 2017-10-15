@@ -66,6 +66,9 @@ NUMERICAL_COLS = [
     'area_room_avg',
     'num_extra_room',
     'area_extra',
+    'coordinate_x',
+    'coordinate_y',
+    'coordinate_z',
 ]
 
 LOG_COLS = [

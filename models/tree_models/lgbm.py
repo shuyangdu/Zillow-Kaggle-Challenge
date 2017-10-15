@@ -38,3 +38,15 @@ class LGBM(object):
         :return: predictions
         """
         return self.model.predict(X=X)
+
+    def get_params(self, deep=False):
+        """
+        Get parameters for this estimator. For details, refer to sklearn base Estimator API.
+        :param deep: 
+        :return: dictionary of parameters
+        """
+        params = {
+            'categorical_feature': self.categorical_feature,
+        }
+        params.update(self.model.get_params())
+        return params

@@ -68,8 +68,11 @@ class BackTest(object):
             y_train, y_val = y[train_idx], y[val_idx]
             X_y_train_val_lst.append((X_train, y_train, X_val, y_val))
 
-        with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
-            mae_lst = list(executor.map(self._fit_predict_eval, X_y_train_val_lst))
+        if self.max_workers > 1:
+            with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
+                mae_lst = list(executor.map(self._fit_predict_eval, X_y_train_val_lst))
+        else:
+            mae_lst = [self._fit_predict_eval(X_y_train_val) for X_y_train_val in X_y_train_val_lst]
 
         print('Single CV finished')
 
